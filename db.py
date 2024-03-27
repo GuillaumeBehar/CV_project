@@ -26,7 +26,6 @@ class CustomEmbeddingFunction(EmbeddingFunction[D]):
                       for i in inputs]
             embeddings = self.model.encode(images)
 
-        print(embeddings.shape)
         return embeddings.tolist()
 
 
@@ -48,7 +47,6 @@ def query_embeddings(db, query, num_neighbors):
 if __name__ == "__main__":
 
     embedding_function = CustomEmbeddingFunction()
-    embedding_function("rainbow")
 
     persistent_dir = "./collections"
     client = chromadb.PersistentClient(path=persistent_dir)
@@ -59,4 +57,4 @@ if __name__ == "__main__":
     image_paths = ["cards/card1.jpg"]
     store_embeddings(db, image_paths)
 
-    print(query_embeddings(db, "rainbow", 5))
+    print(query_embeddings(db, "cards/card1.jpg", 5))
