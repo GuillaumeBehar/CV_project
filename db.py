@@ -14,16 +14,19 @@ class CustomEmbeddingFunction(EmbeddingFunction[D]):
     def __init__(self):
         self.model = SentenceTransformer('clip-ViT-B-32')
 
-    def __call__(self, input: D) -> Embeddings:
-        if not isinstance(input, list):
-            input = [input]
-        if isinstance(input[0], str):
+    def __call__(self, inputs: D) -> Embeddings:
+        if not isinstance(inputs, list):
+            inputs = [inputs]
+        if isinstance(inputs[0], str):
             with torch.no_grad():
-                embeddings = self.model.encode(input)
+                embeddings = self.model.encode(inputs)
 
         else:
-            embeddings = self.model.encode(Image.fromarray(np.array(input)))
+            images = [Image.fromarray(np.array(i).astype('uint8'))
+                      for i in inputs]
+            embeddings = self.model.encode(images)
 
+        print(embeddings.shape)
         return embeddings.tolist()
 
 
@@ -32,19 +35,20 @@ def store_embeddings(db, image_paths):
     db.add(documents=images, ids=image_paths)
 
 
-def retrieve_embeddings(db, ids):
+def get_embeddings(db, ids):
     embeddings = db.get(ids)
     return embeddings
 
 
 def query_embeddings(db, query, num_neighbors):
-    nearest_neighbors = db.search(query, num_neighbors)
+    nearest_neighbors = db.query(query_texts=[query], n_results=num_neighbors)
     return nearest_neighbors
 
 
 if __name__ == "__main__":
 
     embedding_function = CustomEmbeddingFunction()
+    embedding_function("rainbow")
 
     persistent_dir = "./collections"
     client = chromadb.PersistentClient(path=persistent_dir)
@@ -55,5 +59,4 @@ if __name__ == "__main__":
     image_paths = ["cards/card1.jpg"]
     store_embeddings(db, image_paths)
 
-    embedding_function("rainbow")
     print(query_embeddings(db, "rainbow", 5))
