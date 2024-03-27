@@ -65,5 +65,4 @@ if __name__ == "__main__":
     image_paths = ["cards/card1.jpg"]
     # store_embeddings(db, image_paths)
 
-    image = np.array(Image.open(image_paths[0])).tolist()
-    print(query_embeddings(db, image, 5))
+    print(query_text(db, "A guy mouting a poney with a rainbow bridge", 5))
