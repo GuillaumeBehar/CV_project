@@ -20,11 +20,13 @@ class CustomEmbeddingFunction(EmbeddingFunction[D]):
         if isinstance(inputs[0], str):
             with torch.no_grad():
                 embeddings = self.model.encode(inputs)
+            print("Text embeddings shape: ", embeddings.shape)
 
         else:
             images = [Image.fromarray(np.array(i).astype('uint8'))
                       for i in inputs]
             embeddings = self.model.encode(images)
+            print("Image embeddings shape: ", embeddings.shape)
 
         return embeddings.tolist()
 
@@ -39,8 +41,14 @@ def get_embeddings(db, ids):
     return embeddings
 
 
-def query_embeddings(db, query, num_neighbors):
+def query_text(db, query, num_neighbors):
     nearest_neighbors = db.query(query_texts=[query], n_results=num_neighbors)
+    return nearest_neighbors
+
+
+def query_image(db, query, num_neighbors):
+    image = np.array(Image.open(image_paths[0])).tolist()
+    nearest_neighbors = query_text(db, image, 5)
     return nearest_neighbors
 
 
@@ -55,6 +63,7 @@ if __name__ == "__main__":
         metadata={"hnsw:space": "cosine"})
 
     image_paths = ["cards/card1.jpg"]
-    store_embeddings(db, image_paths)
+    # store_embeddings(db, image_paths)
 
-    print(query_embeddings(db, "cards/card1.jpg", 5))
+    image = np.array(Image.open(image_paths[0])).tolist()
+    print(query_embeddings(db, image, 5))
